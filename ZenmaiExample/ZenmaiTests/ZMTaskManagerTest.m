@@ -6,10 +6,10 @@
 //  Copyright (c) 2012 slightair. All rights reserved.
 //
 
-#import "GHTestCase.h"
+#import "GHAsyncTestCase.h"
 #import "ZMTaskManager.h"
 
-@interface ZMTaskManagerTest : GHTestCase
+@interface ZMTaskManagerTest : GHAsyncTestCase
 @end
 
 @implementation ZMTaskManagerTest
@@ -57,6 +57,42 @@
     
     NSSet *tasks = [taskManager tasksBeforeDate:[NSDate dateWithTimeInterval:20 sinceDate:now]];
     GHAssertEquals(2U, [tasks count], @"manager should be return 2 tasks");
+}
+
+- (void)testNotifyTask
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    [taskManager removeAllTasks];
+    
+    NSDate *now = [NSDate date];
+    __block ZMTask *firedTask = nil;
+    
+    [self prepare];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval: 1 sinceDate:now] userInfo:@{@"taskName" : @"hoge"}]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 sinceDate:now] userInfo:@{@"taskName" : @"fuga"}]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:30 sinceDate:now] userInfo:@{@"taskName" : @"piyo"}]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:25 sinceDate:now] userInfo:@{@"taskName" : @"moge"}]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-5 sinceDate:now] userInfo:@{@"taskName" : @"moga"}]];
+    GHAssertEquals(5U, [taskManager numberOfTasks], @"taskManager should have 5 tasks");
+    
+    [taskManager startCheckTimer];
+    
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-10 sinceDate:now] userInfo:@{@"taskName" : @"poyo"}]];
+    GHAssertEquals(5U, [taskManager numberOfTasks], @"taskManager could not add past task when check timer is running");
+    
+    id observer = [taskManager.notificationCenter addObserverForName:ZMTaskManagerTaskFireNotification
+                                                      object:nil
+                                                       queue:[NSOperationQueue mainQueue]
+                                                  usingBlock:^(NSNotification *notification){
+                                                      firedTask = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
+                                                      if ([firedTask.userInfo[@"taskName"] isEqualToString:@"hoge"]) {
+                                                          [self notify:kGHUnitWaitStatusSuccess];
+                                                      }
+                                                  }];
+    [self waitForStatus:kGHUnitWaitStatusSuccess timeout:2.0];
+    
+    [taskManager stopCheckTimer];
+    [taskManager.notificationCenter removeObserver:observer];
 }
 
 @end

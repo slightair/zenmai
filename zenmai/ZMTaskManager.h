@@ -8,6 +8,14 @@
 #import <Foundation/Foundation.h>
 #import "ZMTask.h"
 
+#define ZMTaskManagerCheckTimerInterval 1.0
+
+// notifications
+extern NSString *const ZMTaskManagerTaskFireNotification;
+
+// UserInfoKey
+extern NSString *const ZMTaskManagerNotificationTaskUserInfoKey;
+
 @interface ZMTaskManager : NSObject
 
 + (id)sharedManager;
@@ -16,5 +24,10 @@
 - (NSUInteger)numberOfTasks;
 - (NSArray *)allTasks;
 - (NSSet *)tasksBeforeDate:(NSDate *)date;
+- (NSArray *)sortedTasks;
+- (void)startCheckTimer;
+- (void)stopCheckTimer;
+
+@property(nonatomic, strong) NSNotificationCenter *notificationCenter;
 
 @end
