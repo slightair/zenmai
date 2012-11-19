@@ -54,4 +54,12 @@
     return [self.tasks allObjects];
 }
 
+- (NSSet *)tasksBeforeDate:(NSDate *)date
+{
+    return [self.tasks objectsPassingTest:^BOOL(id obj, BOOL *stop){
+        ZMTask *task = (ZMTask *)obj;
+        return [task.date compare:date] != NSOrderedDescending;
+    }];
+}
+
 @end

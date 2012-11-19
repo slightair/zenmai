@@ -15,5 +15,6 @@
 - (void)addTask:(ZMTask *)task;
 - (NSUInteger)numberOfTasks;
 - (NSArray *)allTasks;
+- (NSSet *)tasksBeforeDate:(NSDate *)date;
 
 @end

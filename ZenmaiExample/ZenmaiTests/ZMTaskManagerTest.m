@@ -29,9 +29,10 @@
     
     GHAssertEquals(0U, [taskManager numberOfTasks], @"tasks should be empty");
     
-    ZMTask *taskA = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:20] userInfo:@{@"taskName" : @"hoge"}];
-    ZMTask *taskB = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:10] userInfo:@{@"taskName" : @"fuga"}];
-    ZMTask *taskC = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:30] userInfo:@{@"taskName" : @"piyo"}];
+    NSDate *now = [NSDate date];
+    ZMTask *taskA = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:20 sinceDate:now] userInfo:@{@"taskName" : @"hoge"}];
+    ZMTask *taskB = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 sinceDate:now] userInfo:@{@"taskName" : @"fuga"}];
+    ZMTask *taskC = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:30 sinceDate:now] userInfo:@{@"taskName" : @"piyo"}];
     
     [taskManager addTask:taskA];
     [taskManager addTask:taskB];
@@ -53,6 +54,9 @@
         }
     }
     GHAssertEquals(0U, [taskNames count], @"missing tasks found");
+    
+    NSSet *tasks = [taskManager tasksBeforeDate:[NSDate dateWithTimeInterval:20 sinceDate:now]];
+    GHAssertEquals(2U, [tasks count], @"manager should be return 2 tasks");
 }
 
 @end
