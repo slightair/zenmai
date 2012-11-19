@@ -25,9 +25,7 @@
 		57DEEE701659258B00D7E22E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57DEEE1B16591EB900D7E22E /* Foundation.framework */; };
 		57DEEE711659258B00D7E22E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57DEEE1D16591EB900D7E22E /* CoreGraphics.framework */; };
 		57DEEE791659258B00D7E22E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE781659258B00D7E22E /* main.m */; };
-		57DEEE8C1659268600D7E22E /* ZMTask.h in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE5B165921A500D7E22E /* ZMTask.h */; };
 		57DEEE8D1659268600D7E22E /* ZMTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE5C165921A500D7E22E /* ZMTask.m */; };
-		57DEEE8E1659268600D7E22E /* ZMTaskManager.h in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE5416591ED600D7E22E /* ZMTaskManager.h */; };
 		57DEEE8F1659268600D7E22E /* ZMTaskManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE5516591ED600D7E22E /* ZMTaskManager.m */; };
 		57DEEE92165926D700D7E22E /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A93D64C5FBC4A1C9FA9823B /* libPods.a */; };
 		57DEEEAB165928BA00D7E22E /* ZMTaskTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEEAA165928BA00D7E22E /* ZMTaskTest.m */; };
@@ -310,9 +308,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				57DEEE8C1659268600D7E22E /* ZMTask.h in Sources */,
 				57DEEE8D1659268600D7E22E /* ZMTask.m in Sources */,
-				57DEEE8E1659268600D7E22E /* ZMTaskManager.h in Sources */,
 				57DEEE8F1659268600D7E22E /* ZMTaskManager.m in Sources */,
 				57DEEE791659258B00D7E22E /* main.m in Sources */,
 				57DEEEAB165928BA00D7E22E /* ZMTaskTest.m in Sources */,
