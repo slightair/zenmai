@@ -6,9 +6,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ZMTask.h"
 
 @interface ZMTaskManager : NSObject
 
 + (id)sharedManager;
+- (void)removeAllTasks;
+- (void)addTask:(ZMTask *)task;
+- (NSUInteger)numberOfTasks;
+- (NSArray *)allTasks;
 
 @end

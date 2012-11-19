@@ -9,8 +9,8 @@
 
 @interface ZMTask()
 
-@property(nonatomic, retain) NSDate *date;
-@property(nonatomic, retain) NSDictionary *userInfo;
+@property(nonatomic, strong) NSDate *date;
+@property(nonatomic, strong) NSDictionary *userInfo;
 
 @end
 

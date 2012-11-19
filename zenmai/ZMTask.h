@@ -11,7 +11,7 @@
 
 - (id)initWithDate:(NSDate *)date userInfo:(NSDictionary *)userInfo;
 
-@property(nonatomic, retain, readonly) NSDate *date;
-@property(nonatomic, retain, readonly) NSDictionary *userInfo;
+@property(nonatomic, strong, readonly) NSDate *date;
+@property(nonatomic, strong, readonly) NSDictionary *userInfo;
 
 @end

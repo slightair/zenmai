@@ -7,6 +7,12 @@
 
 #import "ZMTaskManager.h"
 
+@interface ZMTaskManager ()
+
+@property(nonatomic, strong) NSMutableSet *tasks;
+
+@end
+
 @implementation ZMTaskManager
 
 + (id)sharedManager
@@ -17,6 +23,35 @@
         _sharedInstance = [[self alloc] init];
     });
     return _sharedInstance;
+}
+
+- (id)init
+{
+    self = [super init];
+    if (self) {
+        self.tasks = [NSMutableSet set];
+    }
+    return self;
+}
+
+- (void)removeAllTasks
+{
+    [self.tasks removeAllObjects];
+}
+
+- (void)addTask:(ZMTask *)task
+{
+    [self.tasks addObject:task];
+}
+
+- (NSUInteger)numberOfTasks
+{
+    return [self.tasks count];
+}
+
+- (NSArray *)allTasks
+{
+    return [self.tasks allObjects];
 }
 
 @end
