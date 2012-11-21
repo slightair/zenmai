@@ -18,7 +18,6 @@
 		57DEEE2E16591EB900D7E22E /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 57DEEE2D16591EB900D7E22E /* Default@2x.png */; };
 		57DEEE3016591EB900D7E22E /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 57DEEE2F16591EB900D7E22E /* Default-568h@2x.png */; };
 		57DEEE3316591EB900D7E22E /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 57DEEE3116591EB900D7E22E /* MainStoryboard.storyboard */; };
-		57DEEE3616591EB900D7E22E /* ZMViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE3516591EB900D7E22E /* ZMViewController.m */; };
 		57DEEE5616591ED600D7E22E /* ZMTaskManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE5516591ED600D7E22E /* ZMTaskManager.m */; };
 		57DEEE5D165921A600D7E22E /* ZMTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEE5C165921A500D7E22E /* ZMTask.m */; };
 		57DEEE6F1659258B00D7E22E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 57DEEE1916591EB900D7E22E /* UIKit.framework */; };
@@ -30,6 +29,7 @@
 		57DEEE92165926D700D7E22E /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A93D64C5FBC4A1C9FA9823B /* libPods.a */; };
 		57DEEEAB165928BA00D7E22E /* ZMTaskTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEEAA165928BA00D7E22E /* ZMTaskTest.m */; };
 		57DEEEAE16592A1B00D7E22E /* ZMTaskManagerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEEAD16592A1B00D7E22E /* ZMTaskManagerTest.m */; };
+		57DEEEB1165BD75300D7E22E /* ZMTaskListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 57DEEEB0165BD75300D7E22E /* ZMTaskListViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,8 +48,6 @@
 		57DEEE2D16591EB900D7E22E /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		57DEEE2F16591EB900D7E22E /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		57DEEE3216591EB900D7E22E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
-		57DEEE3416591EB900D7E22E /* ZMViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZMViewController.h; sourceTree = "<group>"; };
-		57DEEE3516591EB900D7E22E /* ZMViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZMViewController.m; sourceTree = "<group>"; };
 		57DEEE5416591ED600D7E22E /* ZMTaskManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZMTaskManager.h; path = ../zenmai/ZMTaskManager.h; sourceTree = "<group>"; };
 		57DEEE5516591ED600D7E22E /* ZMTaskManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ZMTaskManager.m; path = ../zenmai/ZMTaskManager.m; sourceTree = "<group>"; };
 		57DEEE5B165921A500D7E22E /* ZMTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ZMTask.h; path = ../zenmai/ZMTask.h; sourceTree = "<group>"; };
@@ -60,6 +58,8 @@
 		57DEEE7A1659258B00D7E22E /* ZenmaiTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ZenmaiTests-Prefix.pch"; sourceTree = "<group>"; };
 		57DEEEAA165928BA00D7E22E /* ZMTaskTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMTaskTest.m; sourceTree = "<group>"; };
 		57DEEEAD16592A1B00D7E22E /* ZMTaskManagerTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMTaskManagerTest.m; sourceTree = "<group>"; };
+		57DEEEAF165BD75300D7E22E /* ZMTaskListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZMTaskListViewController.h; sourceTree = "<group>"; };
+		57DEEEB0165BD75300D7E22E /* ZMTaskListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMTaskListViewController.m; sourceTree = "<group>"; };
 		7BA69FE755FD49468A42E5D8 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -130,9 +130,9 @@
 				57DEEE2816591EB900D7E22E /* ZMAppDelegate.h */,
 				57DEEE2916591EB900D7E22E /* ZMAppDelegate.m */,
 				57DEEE3116591EB900D7E22E /* MainStoryboard.storyboard */,
-				57DEEE3416591EB900D7E22E /* ZMViewController.h */,
-				57DEEE3516591EB900D7E22E /* ZMViewController.m */,
 				57DEEE2016591EB900D7E22E /* Supporting Files */,
+				57DEEEAF165BD75300D7E22E /* ZMTaskListViewController.h */,
+				57DEEEB0165BD75300D7E22E /* ZMTaskListViewController.m */,
 			);
 			path = ZenmaiExample;
 			sourceTree = "<group>";
@@ -298,9 +298,9 @@
 			files = (
 				57DEEE2616591EB900D7E22E /* main.m in Sources */,
 				57DEEE2A16591EB900D7E22E /* ZMAppDelegate.m in Sources */,
-				57DEEE3616591EB900D7E22E /* ZMViewController.m in Sources */,
 				57DEEE5616591ED600D7E22E /* ZMTaskManager.m in Sources */,
 				57DEEE5D165921A600D7E22E /* ZMTask.m in Sources */,
+				57DEEEB1165BD75300D7E22E /* ZMTaskListViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
