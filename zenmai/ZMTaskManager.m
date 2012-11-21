@@ -126,10 +126,10 @@ NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotifi
     while ([(tasks = [self tasksBeforeDate:date]) count] > 0) {
         ZMTask *task = [[self sortedTasks:tasks] objectAtIndex:0];
         
+        [self.tasks removeObject:task];
         [self.notificationCenter postNotificationName:ZMTaskManagerTaskFireNotification
                                                object:self
                                              userInfo:@{ZMTaskManagerNotificationTaskUserInfoKey : task}];
-        [self.tasks removeObject:task];
     }
 }
 
