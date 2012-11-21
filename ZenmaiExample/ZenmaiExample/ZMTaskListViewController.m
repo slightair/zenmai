@@ -9,9 +9,16 @@
 #import "ZMTaskListViewController.h"
 #import "ZMTaskManager.h"
 
+enum Sections {
+    TaskListViewSectionWaitTasks = 0,
+    TaskListViewSectionCompleteTasks,
+    NumberOfTaskListViewSections
+};
+
 @interface ZMTaskListViewController ()
 
 @property(nonatomic, strong) ZMTaskManager *taskManager;
+@property(nonatomic, strong) NSMutableArray *completeTasks;
 
 @end
 
@@ -28,9 +35,17 @@
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
     self.taskManager = [ZMTaskManager sharedManager];
+    self.completeTasks = [NSMutableArray array];
     
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    [notificationCenter addObserver:self.view selector:@selector(reloadData) name:ZMTaskManagerTaskFireNotification object:nil];
+    [notificationCenter addObserverForName:ZMTaskManagerTaskFireNotification
+                                    object:nil
+                                     queue:[NSOperationQueue mainQueue]
+                                usingBlock:^(NSNotification *notification){
+                                    ZMTask *task = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
+                                    [self.completeTasks addObject:task];
+                                    [self.tableView reloadData];
+                                }];
 }
 
 - (void)didReceiveMemoryWarning
@@ -44,13 +59,25 @@
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     // Return the number of sections.
-    return 1;
+    return NumberOfTaskListViewSections;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return [[self.taskManager allTasks] count];
+    NSInteger rows = 0;
+    
+    switch (section) {
+        case TaskListViewSectionWaitTasks:
+            rows = [[self.taskManager allTasks] count];
+            break;
+        case TaskListViewSectionCompleteTasks:
+            rows = [self.completeTasks count];
+            break;
+        default:
+            break;
+    }
+    return rows;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -63,11 +90,46 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
     }
     
-    ZMTask *task = [[self.taskManager sortedTasks] objectAtIndex:indexPath.row];
-    cell.textLabel.text = task.userInfo[@"name"];
-    cell.detailTextLabel.text = [task.date description];
+    ZMTask *task = nil;
+    
+    switch (indexPath.section) {
+        case TaskListViewSectionWaitTasks:
+            task = [[self.taskManager sortedTasks] objectAtIndex:indexPath.row];
+            break;
+        case TaskListViewSectionCompleteTasks:
+            task = [self.completeTasks objectAtIndex:indexPath.row];
+            break;
+        default:
+            cell.textLabel.text = @"";
+            cell.detailTextLabel.text = @"";
+            break;
+    }
+    
+    if (task) {
+        cell.textLabel.text = task.userInfo[@"name"];
+        cell.detailTextLabel.text = [task.date description];
+    }
     
     return cell;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    NSString *title = nil;
+    
+    switch (section) {
+        case TaskListViewSectionWaitTasks:
+            title = @"Wait Tasks";
+            break;
+        case TaskListViewSectionCompleteTasks:
+            title = @"Complete Tasks";
+            break;
+        default:
+            title = @"";
+            break;
+    }
+    
+    return title;
 }
 
 #pragma mark - Table view delegate

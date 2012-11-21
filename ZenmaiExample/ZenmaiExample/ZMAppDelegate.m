@@ -22,6 +22,16 @@
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:30] userInfo:@{@"name" : @"piyo"}]];
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:40] userInfo:@{@"name" : @"moge"}]];
     
+    [[NSNotificationCenter defaultCenter] addObserverForName:ZMTaskManagerTaskFireNotification
+                                                      object:nil
+                                                       queue:[NSOperationQueue mainQueue]
+                                                  usingBlock:^(NSNotification *notification){
+                                                      ZMTask *task = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
+                                                      ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:5]
+                                                                                            userInfo:@{@"name" : task.userInfo[@"name"]}];
+                                                      [taskManager addTask:newTask];
+                                                  }];
+    
     [taskManager startCheckTimer];
     
     return YES;
