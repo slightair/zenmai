@@ -26,4 +26,20 @@
     return self;
 }
 
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    self = [super init];
+    if (self) {
+        self.date = [aDecoder decodeObjectForKey:@"date"];
+        self.userInfo = [aDecoder decodeObjectForKey:@"userInfo"];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
+    [aCoder encodeObject:self.date forKey:@"date"];
+    [aCoder encodeObject:self.userInfo forKey:@"userInfo"];
+}
+
 @end

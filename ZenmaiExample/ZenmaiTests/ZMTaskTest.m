@@ -26,4 +26,18 @@
     GHAssertEqualObjects(@"hoge", task.userInfo[@"taskName"], @"task.userInfo[@\"taskName\"] should be equal 'hoge'");
 }
 
+- (void)testNSCodingProtocol
+{
+    NSDate *date = [NSDate date];
+    NSDictionary *userInfo = @{@"name" : @"hoge", @"option" : @"fuga"};
+    
+    ZMTask *task = [[ZMTask alloc] initWithDate:date userInfo:userInfo];
+    
+    NSData *archivedData = [NSKeyedArchiver archivedDataWithRootObject:task];
+    ZMTask *unarchivedTask = [NSKeyedUnarchiver unarchiveObjectWithData:archivedData];
+    
+    GHAssertEqualObjects(task.date, unarchivedTask.date, @"failed to unarchive task.date");
+    GHAssertEqualObjects(task.userInfo, unarchivedTask.userInfo, @"failed to unarchive task.userInfo");
+}
+
 @end

@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ZMTask : NSObject
+@interface ZMTask : NSObject <NSCoding>
 
 - (id)initWithDate:(NSDate *)date userInfo:(NSDictionary *)userInfo;
 
