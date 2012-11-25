@@ -241,6 +241,7 @@
     [taskManager restoreTasks];
     
     [mockObserver verify];
+    [taskManager.notificationCenter removeObserver:mockObserver];
     GHAssertEquals(3U, [taskManager numberOfTasks], @"taskManager should have 3 tasks.");
 }
 
