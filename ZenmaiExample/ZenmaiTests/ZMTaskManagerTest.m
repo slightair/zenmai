@@ -10,7 +10,7 @@
 #import "OCMock.h"
 #import "ZMTaskManager.h"
 
-#define kTestTaskListSaveFilePath @"/tmp/testZMTasks.dat"
+#define kTestTaskListSaveFilePath @"/tmp/zenmai/testZMTasks.dat"
 
 @interface ZMTaskManager ()
 
