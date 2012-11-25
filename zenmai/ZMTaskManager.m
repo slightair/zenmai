@@ -162,14 +162,17 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     return firedTasks;
 }
 
-- (void)restoreTasks
+- (BOOL)restoreTasks
 {
     NSSet *savedTasks = [NSKeyedUnarchiver unarchiveObjectWithFile:self.taskListSaveFilePath];
     if (savedTasks) {
         self.tasks = [NSMutableSet setWithSet:savedTasks];
         [self.notificationCenter postNotificationName:ZMTaskManagerRestoreTasksNotification
                                                object:self];
+        return YES;
     }
+    
+    return NO;
 }
 
 - (BOOL)saveTasks

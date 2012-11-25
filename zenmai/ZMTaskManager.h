@@ -28,7 +28,7 @@ extern NSString *const ZMTaskManagerNotificationTaskUserInfoKey;
 - (NSArray *)sortedTasks;
 - (void)startCheckTimer;
 - (void)stopCheckTimer;
-- (void)restoreTasks;
+- (BOOL)restoreTasks;
 
 @property(nonatomic, strong) NSNotificationCenter *notificationCenter;
 

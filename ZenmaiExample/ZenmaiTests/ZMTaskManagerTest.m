@@ -219,10 +219,14 @@
 
 - (void)testRestoreTasks
 {
+    BOOL result = NO;
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
     
     [taskManager removeAllTasks];
     GHAssertEquals(0U, [taskManager numberOfTasks], @"taskManager is empty.");
+    
+    result = [taskManager restoreTasks];
+    GHAssertFalse(result, @"taskManager should return NO if not restore tasks.");
     
     NSSet *dummyTasks = [NSSet setWithObjects:
                          [[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil],
@@ -238,10 +242,11 @@
                                                name:ZMTaskManagerRestoreTasksNotification
                                              object:nil];
     
-    [taskManager restoreTasks];
+    result = [taskManager restoreTasks];
     
     [mockObserver verify];
     [taskManager.notificationCenter removeObserver:mockObserver];
+    GHAssertTrue(result, @"taskManager should return YES if succeeded restore tasks.");
     GHAssertEquals(3U, [taskManager numberOfTasks], @"taskManager should have 3 tasks.");
 }
 
