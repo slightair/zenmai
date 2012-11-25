@@ -13,16 +13,22 @@ NSString *const ZMTaskManagerTaskFireNotification = @"ZMTaskManagerTaskFireNotif
 // UserInfoKey
 NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotificationTaskUserInfoKey";
 
+// Constants
+NSString *const ZMTaskManagerTaskListSaveFileDirectory = @"zenmai";
+NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
+
 @interface ZMTaskManager ()
 
 - (NSArray *)sortedTasks:(NSSet *)tasks;
 - (void)tick;
-- (void)fireTasks:(NSDate *)date;
+- (NSUInteger)fireTasks:(NSDate *)date;
+- (BOOL)saveTasks;
 
 @property(nonatomic, strong) NSMutableSet *tasks;
 @property(nonatomic, strong) NSTimer *checkTimer;
 @property(nonatomic, assign) NSTimeInterval checkTimerInterval;
 @property(nonatomic, assign) BOOL isTickProcessRunning;
+@property(nonatomic, strong) NSString *taskListSaveFilePath;
 
 @end
 
@@ -45,6 +51,9 @@ NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotifi
         self.tasks = [NSMutableSet set];
         self.isTickProcessRunning = NO;
         self.notificationCenter = [NSNotificationCenter defaultCenter];
+        self.taskListSaveFilePath = [[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
+                                      stringByAppendingPathComponent:ZMTaskManagerTaskListSaveFileDirectory]
+                                      stringByAppendingPathComponent:ZMTaskManagerTaskListSaveFileName];
     }
     return self;
 }
@@ -52,6 +61,14 @@ NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotifi
 - (void)removeAllTasks
 {
     [self.tasks removeAllObjects];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if ([fileManager fileExistsAtPath:self.taskListSaveFilePath]) {
+        NSError *error = nil;
+        if (![fileManager removeItemAtPath:self.taskListSaveFilePath error:&error]) {
+            // notification
+        }
+    }
 }
 
 - (void)addTask:(ZMTask *)task
@@ -60,6 +77,12 @@ NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotifi
         return;
     }
     [self.tasks addObject:task];
+    
+    if (!self.isTickProcessRunning) {
+        if (![self saveTasks]) {
+            // notification
+        }
+    }
 }
 
 - (NSUInteger)numberOfTasks
@@ -115,14 +138,20 @@ NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotifi
     }
     self.isTickProcessRunning = YES;
     
-    [self fireTasks:[NSDate date]];
+    if ([self fireTasks:[NSDate date]] > 0) {
+        if (![self saveTasks]) {
+            // notification
+        }
+    }
     
     self.isTickProcessRunning = NO;
 }
 
-- (void)fireTasks:(NSDate *)date
+- (NSUInteger)fireTasks:(NSDate *)date
 {
     NSSet *tasks = nil;
+    NSUInteger firedTasks = 0;
+    
     while ([(tasks = [self tasksBeforeDate:date]) count] > 0) {
         ZMTask *task = [[self sortedTasks:tasks] objectAtIndex:0];
         
@@ -130,7 +159,24 @@ NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotifi
         [self.notificationCenter postNotificationName:ZMTaskManagerTaskFireNotification
                                                object:self
                                              userInfo:@{ZMTaskManagerNotificationTaskUserInfoKey : task}];
+        firedTasks++;
     }
+    
+    return firedTasks;
+}
+
+- (void)restoreTasks
+{
+    NSSet *savedTasks = [NSKeyedUnarchiver unarchiveObjectWithFile:self.taskListSaveFilePath];
+    if (savedTasks) {
+        self.tasks = [NSMutableSet setWithSet:savedTasks];
+        // notification
+    }
+}
+
+- (BOOL)saveTasks
+{
+    return [NSKeyedArchiver archiveRootObject:self.tasks toFile:self.taskListSaveFilePath];
 }
 
 @end
