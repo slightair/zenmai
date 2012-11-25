@@ -9,6 +9,7 @@
 
 // notifications
 NSString *const ZMTaskManagerTaskFireNotification = @"ZMTaskManagerTaskFireNotification";
+NSString *const ZMTaskManagerRestoreTasksNotification = @"ZMTaskManagerRestoreTasksNotification";
 
 // UserInfoKey
 NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotificationTaskUserInfoKey";

@@ -12,6 +12,7 @@
 
 // notifications
 extern NSString *const ZMTaskManagerTaskFireNotification;
+extern NSString *const ZMTaskManagerRestoreTasksNotification;
 
 // UserInfoKey
 extern NSString *const ZMTaskManagerNotificationTaskUserInfoKey;
