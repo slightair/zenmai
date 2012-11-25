@@ -17,22 +17,22 @@
     
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
     
-    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:10] userInfo:@{@"name" : @"hoge"}]];
-    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:20] userInfo:@{@"name" : @"fuga"}]];
-    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:30] userInfo:@{@"name" : @"piyo"}]];
-    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:40] userInfo:@{@"name" : @"moge"}]];
-    
     [[NSNotificationCenter defaultCenter] addObserverForName:ZMTaskManagerTaskFireNotification
                                                       object:nil
                                                        queue:[NSOperationQueue mainQueue]
                                                   usingBlock:^(NSNotification *notification){
                                                       ZMTask *task = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
-                                                      ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:5]
+                                                      ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 sinceDate:task.date]
                                                                                             userInfo:@{@"name" : task.userInfo[@"name"]}];
                                                       [taskManager addTask:newTask];
                                                   }];
     
-    [taskManager startCheckTimer];
+    if (![taskManager restoreTasks] || taskManager.numberOfTasks == 0) {
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:10] userInfo:@{@"name" : @"hoge"}]];
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:20] userInfo:@{@"name" : @"fuga"}]];
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:30] userInfo:@{@"name" : @"piyo"}]];
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:40] userInfo:@{@"name" : @"moge"}]];
+    }
     
     return YES;
 }

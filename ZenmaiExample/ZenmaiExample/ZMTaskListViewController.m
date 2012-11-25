@@ -46,6 +46,8 @@ enum Sections {
                                     [self.completeTasks addObject:task];
                                     [self.tableView reloadData];
                                 }];
+    
+    [self.taskManager startCheckTimer];
 }
 
 - (void)didReceiveMemoryWarning
