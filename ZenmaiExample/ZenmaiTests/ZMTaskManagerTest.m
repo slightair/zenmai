@@ -7,6 +7,7 @@
 //
 
 #import "GHAsyncTestCase.h"
+#import "OCMock.h"
 #import "ZMTaskManager.h"
 
 #define kTestTaskListSaveFilePath @"/tmp/testZMTasks.dat"
@@ -230,20 +231,16 @@
                          nil];
     [NSKeyedArchiver archiveRootObject:dummyTasks toFile:kTestTaskListSaveFilePath];
     
-    id observer = [taskManager.notificationCenter addObserverForName:ZMTaskManagerRestoreTasksNotification
-                                                              object:nil
-                                                               queue:[NSOperationQueue mainQueue]
-                                                          usingBlock:^(NSNotification *notification){
-                                                              [self notify:kGHUnitWaitStatusSuccess];
-                                                          }];
     
-    [self prepare];
+    id mockObserver = [OCMockObject observerMock];
+    [[mockObserver expect] notificationWithName:ZMTaskManagerRestoreTasksNotification object:OCMOCK_ANY];
+    [taskManager.notificationCenter addMockObserver:mockObserver
+                                               name:ZMTaskManagerRestoreTasksNotification
+                                             object:nil];
     
     [taskManager restoreTasks];
     
-    [self waitForStatus:kGHUnitWaitStatusSuccess timeout:0.5];
-    
-    [taskManager.notificationCenter removeObserver:observer];
+    [mockObserver verify];
     GHAssertEquals(3U, [taskManager numberOfTasks], @"taskManager should have 3 tasks.");
 }
 
