@@ -174,6 +174,12 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
 
 - (BOOL)saveTasks
 {
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *directoryPath = [self.taskListSaveFilePath stringByDeletingLastPathComponent];
+    if (![fileManager fileExistsAtPath:directoryPath]) {
+        BOOL result = [fileManager createDirectoryAtPath:directoryPath withIntermediateDirectories:YES attributes:nil error:NULL];
+        NSAssert(result, @"could not make task list save directory.");
+    }
     return [NSKeyedArchiver archiveRootObject:self.tasks toFile:self.taskListSaveFilePath];
 }
 
