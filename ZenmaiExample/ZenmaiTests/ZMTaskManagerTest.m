@@ -9,7 +9,21 @@
 #import "GHAsyncTestCase.h"
 #import "ZMTaskManager.h"
 
+#define kTestTaskListSaveFilePath @"/tmp/testZMTasks.dat"
+
+@interface ZMTaskManager ()
+
+- (void)tick;
+- (NSUInteger)fireTasks:(NSDate *)date;
+- (BOOL)saveTasks;
+
+@property(nonatomic, strong) NSString *taskListSaveFilePath;
+@property(nonatomic, assign) BOOL isTickProcessRunning;
+
+@end
+
 @interface ZMTaskManagerTest : GHAsyncTestCase
+@property(nonatomic, strong) NSString *originalTaskListSaveFilePath;
 @end
 
 @implementation ZMTaskManagerTest
@@ -20,6 +34,22 @@
     id managerB = [ZMTaskManager sharedManager];
     
     GHAssertEqualObjects(managerA, managerB, @"ZMTaskManager instance is not Singleton object.");
+}
+
+- (void)setUpClass
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    
+    self.originalTaskListSaveFilePath = taskManager.taskListSaveFilePath;
+    taskManager.taskListSaveFilePath = kTestTaskListSaveFilePath;
+}
+
+- (void)tearDownClass
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    
+    taskManager.taskListSaveFilePath = self.originalTaskListSaveFilePath;
+    self.originalTaskListSaveFilePath = nil;
 }
 
 - (void)testManageTasks
@@ -65,7 +95,6 @@
     [taskManager removeAllTasks];
     
     NSDate *now = [NSDate date];
-    __block ZMTask *firedTask = nil;
     
     [self prepare];
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval: 1 sinceDate:now] userInfo:@{@"taskName" : @"hoge"}]];
@@ -84,7 +113,7 @@
                                                       object:nil
                                                        queue:[NSOperationQueue mainQueue]
                                                   usingBlock:^(NSNotification *notification){
-                                                      firedTask = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
+                                                      ZMTask *firedTask = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
                                                       if ([firedTask.userInfo[@"taskName"] isEqualToString:@"hoge"]) {
                                                           [self notify:kGHUnitWaitStatusSuccess];
                                                       }
@@ -93,6 +122,126 @@
     
     [taskManager stopCheckTimer];
     [taskManager.notificationCenter removeObserver:observer];
+}
+
+- (void)testSaveTasks
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    [taskManager removeAllTasks];
+    GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists");
+    
+    taskManager.isTickProcessRunning = NO;
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil]];
+    GHAssertTrue([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is not exists");
+    
+    [taskManager removeAllTasks];
+    GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists");
+    
+    // not save task list when tick process runnning.
+    taskManager.isTickProcessRunning = YES;
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil]];
+    GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists");
+}
+
+- (void)testTick
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    [taskManager removeAllTasks];
+    
+    NSDate *now = [NSDate date];
+    
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-1 sinceDate:now] userInfo:nil]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:5 sinceDate:now] userInfo:nil]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 sinceDate:now] userInfo:nil]];
+    
+    GHAssertEquals(3U, [taskManager numberOfTasks], @"taskManager should have 3 tasks");
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    // save task list when exist fired task
+    [fileManager removeItemAtPath:kTestTaskListSaveFilePath error:NULL];
+    GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists");
+    
+    [taskManager tick];
+    GHAssertEquals(2U, [taskManager numberOfTasks], @"taskManager should have 2 tasks");
+    GHAssertTrue([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is not exists");
+    
+    // not save task list when not exist fired task
+    [fileManager removeItemAtPath:kTestTaskListSaveFilePath error:NULL];
+    GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists");
+    
+    [taskManager tick];
+    GHAssertEquals(2U, [taskManager numberOfTasks], @"taskManager should have 2 tasks");
+    GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists");
+}
+
+- (void)testFireTasks
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    [taskManager removeAllTasks];
+    
+    NSDate *now = [NSDate date];
+    
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-1 sinceDate:now] userInfo:nil]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:5 sinceDate:now] userInfo:nil]];
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 sinceDate:now] userInfo:nil]];
+    
+    GHAssertEquals(1U, [taskManager fireTasks:now], @"taskManager should fire 1 task");
+    
+    GHAssertEquals(0U, [taskManager fireTasks:now], @"taskManager should not fire task");
+    
+    [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-10 sinceDate:now] userInfo:@{@"taskName" : @"test"}]];
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    id observer = [notificationCenter addObserverForName:ZMTaskManagerTaskFireNotification
+                                                  object:nil
+                                                   queue:[NSOperationQueue mainQueue]
+                                              usingBlock:^(NSNotification *notification){
+                                                  ZMTask *firedTask = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
+                                                  if ([firedTask.userInfo[@"testName"] isEqualToString:@"test"]) {
+                                                      ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-5 sinceDate:now] userInfo:nil];
+                                                      [taskManager addTask:newTask];
+                                                  }
+                                              }];
+    
+    NSUInteger *numberOfFiredTasks = [taskManager fireTasks:now];
+    [notificationCenter removeObserver:observer];
+    
+    GHAssertEquals(2U, numberOfFiredTasks, @"taskManager should fire 2 task");
+}
+
+- (void)testRestoreTasks
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    
+    [taskManager removeAllTasks];
+    GHAssertEquals(0U, [taskManager numberOfTasks], @"taskManager is empty");
+    
+    NSSet *dummyTasks = [NSSet setWithObjects:
+                         [[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil],
+                         [[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil],
+                         [[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil],
+                         nil];
+    [NSKeyedArchiver archiveRootObject:dummyTasks toFile:kTestTaskListSaveFilePath];
+    
+    [taskManager restoreTasks];
+    GHAssertEquals(3U, [taskManager numberOfTasks], @"taskManager should have 3 tasks");
+}
+
+- (void)testRemoveTaskListSaveFileWhenRemovedAllTasks
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    [taskManager removeAllTasks];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    [fileManager createFileAtPath:kTestTaskListSaveFilePath contents:[NSData data] attributes:nil];
+    GHAssertTrue([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is not exists");
+    
+    [taskManager removeAllTasks];
+    GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists");
 }
 
 @end
