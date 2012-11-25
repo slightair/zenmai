@@ -64,10 +64,8 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     if ([fileManager fileExistsAtPath:self.taskListSaveFilePath]) {
-        NSError *error = nil;
-        if (![fileManager removeItemAtPath:self.taskListSaveFilePath error:&error]) {
-            // notification
-        }
+        BOOL result = [fileManager removeItemAtPath:self.taskListSaveFilePath error:NULL];
+        NSAssert(result, @"could not remove task list save file.");
     }
 }
 
@@ -79,9 +77,8 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     [self.tasks addObject:task];
     
     if (!self.isTickProcessRunning) {
-        if (![self saveTasks]) {
-            // notification
-        }
+        BOOL result = [self saveTasks];
+        NSAssert(result, @"could not save task list.");
     }
 }
 
@@ -139,9 +136,8 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     self.isTickProcessRunning = YES;
     
     if ([self fireTasks:[NSDate date]] > 0) {
-        if (![self saveTasks]) {
-            // notification
-        }
+        BOOL result = [self saveTasks];
+        NSAssert(result, @"could not save task list.");
     }
     
     self.isTickProcessRunning = NO;
