@@ -116,6 +116,8 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     [self.checkTimer invalidate];
     
     self.isTickProcessRunning = NO;
+    [self tick];
+    
     self.checkTimer = [NSTimer scheduledTimerWithTimeInterval:ZMTaskManagerCheckTimerInterval
                                                        target:self
                                                      selector:@selector(tick)

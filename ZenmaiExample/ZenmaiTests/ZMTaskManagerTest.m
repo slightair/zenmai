@@ -53,10 +53,22 @@
     self.originalTaskListSaveFilePath = nil;
 }
 
-- (void)testManageTasks
+- (void)setUp
 {
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
     [taskManager removeAllTasks];
+}
+
+- (void)tearDown
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    [taskManager stopCheckTimer];
+    taskManager.isTickProcessRunning = NO;
+}
+
+- (void)testManageTasks
+{
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
     
     GHAssertEquals(0U, [taskManager numberOfTasks], @"tasks should be empty.");
     
@@ -93,7 +105,6 @@
 - (void)testNotifyTask
 {
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
-    [taskManager removeAllTasks];
     
     NSDate *now = [NSDate date];
     
@@ -117,9 +128,10 @@
     [self prepare];
     
     [taskManager startCheckTimer];
+    GHAssertEquals(4U, [taskManager numberOfTasks], @"taskManager should run first tick when start check timer.");
     
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-10 sinceDate:now] userInfo:@{@"taskName" : @"poyo"}]];
-    GHAssertEquals(5U, [taskManager numberOfTasks], @"taskManager could not add past task when check timer is running.");
+    GHAssertEquals(4U, [taskManager numberOfTasks], @"taskManager could not add past task when check timer is running.");
     
     [self waitForStatus:kGHUnitWaitStatusSuccess timeout:2.0];
     
@@ -132,8 +144,6 @@
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    
-    [taskManager removeAllTasks];
     GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists.");
     
     taskManager.isTickProcessRunning = NO;
@@ -146,14 +156,12 @@
     // not save task list when tick process runnning.
     taskManager.isTickProcessRunning = YES;
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil]];
-    taskManager.isTickProcessRunning = NO;
     GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists.");
 }
 
 - (void)testTick
 {
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
-    [taskManager removeAllTasks];
     
     NSDate *now = [NSDate date];
     
@@ -185,7 +193,6 @@
 - (void)testFireTasks
 {
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
-    [taskManager removeAllTasks];
     
     NSDate *now = [NSDate date];
     
@@ -221,8 +228,6 @@
 {
     BOOL result = NO;
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
-    
-    [taskManager removeAllTasks];
     GHAssertEquals(0U, [taskManager numberOfTasks], @"taskManager is empty.");
     
     result = [taskManager restoreTasks];
@@ -253,7 +258,6 @@
 - (void)testRemoveTaskListSaveFileWhenRemovedAllTasks
 {
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
-    [taskManager removeAllTasks];
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     [fileManager createFileAtPath:kTestTaskListSaveFilePath contents:[NSData data] attributes:nil];
