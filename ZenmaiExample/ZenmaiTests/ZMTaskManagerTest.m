@@ -201,13 +201,13 @@
                                                    queue:[NSOperationQueue mainQueue]
                                               usingBlock:^(NSNotification *notification){
                                                   ZMTask *firedTask = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
-                                                  if ([firedTask.userInfo[@"testName"] isEqualToString:@"test"]) {
+                                                  if ([firedTask.userInfo[@"taskName"] isEqualToString:@"test"]) {
                                                       ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-5 sinceDate:now] userInfo:nil];
                                                       [taskManager addTask:newTask];
                                                   }
                                               }];
     
-    NSUInteger *numberOfFiredTasks = [taskManager fireTasks:now];
+    NSUInteger numberOfFiredTasks = [taskManager fireTasks:now];
     [notificationCenter removeObserver:observer];
     
     GHAssertEquals(2U, numberOfFiredTasks, @"taskManager should fire 2 task");
