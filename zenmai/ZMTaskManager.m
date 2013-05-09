@@ -10,6 +10,7 @@
 // notifications
 NSString *const ZMTaskManagerTaskFireNotification = @"ZMTaskManagerTaskFireNotification";
 NSString *const ZMTaskManagerRestoreTasksNotification = @"ZMTaskManagerRestoreTasksNotification";
+NSString *const ZMTaskManagerTickNotification = @"ZMTaskManagerTickNotification";
 
 // UserInfoKey
 NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotificationTaskUserInfoKey";
@@ -142,7 +143,9 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
         BOOL result = [self saveTasks];
         NSAssert(result, @"could not save task list (%@).", self.taskListSaveFilePath);
     }
-    
+
+    [self.notificationCenter postNotificationName:ZMTaskManagerTickNotification object:self];
+
     self.isTickProcessRunning = NO;
 }
 

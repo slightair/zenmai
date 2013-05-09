@@ -188,6 +188,15 @@
     [taskManager tick];
     GHAssertEquals(2U, [taskManager numberOfTasks], @"taskManager should have 2 tasks.");
     GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists.");
+
+    id observerMock = [OCMockObject observerMock];
+    [[observerMock expect] notificationWithName:ZMTaskManagerTickNotification object:OCMOCK_ANY];
+    [taskManager.notificationCenter addMockObserver:observerMock name:ZMTaskManagerTickNotification object:nil];
+
+    [taskManager tick];
+
+    [taskManager.notificationCenter removeObserver:observerMock];
+    [observerMock verify];
 }
 
 - (void)testFireTasks
