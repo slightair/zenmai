@@ -15,6 +15,7 @@ NSString *const ZMTaskManagerTickNotification = @"ZMTaskManagerTickNotification"
 
 // UserInfoKey
 NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotificationTaskUserInfoKey";
+NSString *const ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey = @"ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey";
 
 // Constants
 NSString *const ZMTaskManagerTaskListSaveFileDirectory = @"zenmai";
@@ -160,13 +161,16 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
         return;
     }
     self.isTickProcessRunning = YES;
-    
-    if ([self fireTasks:[NSDate date]] > 0) {
+
+    NSUInteger numberOfFiredTasks = [self fireTasks:[NSDate date]];
+    if (numberOfFiredTasks > 0) {
         BOOL result = [self saveTasks];
         NSAssert(result, @"could not save task list (%@).", self.taskListSaveFilePath);
     }
 
-    [self.notificationCenter postNotificationName:ZMTaskManagerTickNotification object:self];
+    [self.notificationCenter postNotificationName:ZMTaskManagerTickNotification
+                                           object:self
+                                         userInfo:@{ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey: @(numberOfFiredTasks)}];
 
     self.isTickProcessRunning = NO;
 }

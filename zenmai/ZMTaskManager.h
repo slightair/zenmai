@@ -18,6 +18,7 @@ extern NSString *const ZMTaskManagerTickNotification;
 
 // UserInfoKey
 extern NSString *const ZMTaskManagerNotificationTaskUserInfoKey;
+extern NSString *const ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey;
 
 @interface ZMTaskManager : NSObject
 
