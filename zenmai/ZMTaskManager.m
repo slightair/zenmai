@@ -28,10 +28,15 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
 - (BOOL)saveTasks;
 
 @property(nonatomic, strong) NSMutableSet *tasks;
-@property(nonatomic, strong) NSTimer *checkTimer;
 @property(nonatomic, assign) NSTimeInterval checkTimerInterval;
 @property(nonatomic, assign) BOOL isTickProcessRunning;
 @property(nonatomic, strong) NSString *taskListSaveFilePath;
+
+#if OS_OBJECT_USE_OBJC
+@property(nonatomic, strong) dispatch_source_t checkTimer;
+#else
+@property(nonatomic, assign) dispatch_source_t checkTimer;
+#endif
 
 @end
 
@@ -57,6 +62,7 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
         self.taskListSaveFilePath = [[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
                                       stringByAppendingPathComponent:ZMTaskManagerTaskListSaveFileDirectory]
                                       stringByAppendingPathComponent:ZMTaskManagerTaskListSaveFileName];
+        self.checkTimerInterval = ZMTaskManagerCheckTimerInterval;
     }
     return self;
 }
@@ -74,7 +80,7 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
 
 - (void)addTask:(ZMTask *)task
 {
-    if ([self.checkTimer isValid] && [task.date compare:[NSDate date]] == NSOrderedAscending) {
+    if (self.checkTimer && [task.date compare:[NSDate date]] == NSOrderedAscending) {
         return;
     }
     [self.tasks addObject:task];
@@ -115,23 +121,40 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
 
 - (void)startCheckTimer
 {
-    [self.checkTimer invalidate];
-    
+    if (self.checkTimer) {
+        return;
+    }
+
     self.isTickProcessRunning = NO;
     [self tick];
     [self.notificationCenter postNotificationName:ZMTaskManagerResumedNotification object:self];
-    
-    self.checkTimer = [NSTimer scheduledTimerWithTimeInterval:ZMTaskManagerCheckTimerInterval
-                                                       target:self
-                                                     selector:@selector(tick)
-                                                     userInfo:nil
-                                                      repeats:YES];
+
+    dispatch_queue_t queue = dispatch_queue_create("timerQueue", 0);
+    self.checkTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
+
+    dispatch_source_set_event_handler(self.checkTimer, ^{
+        [self tick];
+    });
+
+    dispatch_source_set_cancel_handler(self.checkTimer, ^{
+
+#if !OS_OBJECT_USE_OBJC
+        dispatch_release(self.checkTimer);
+#endif
+
+        self.checkTimer = nil;
+    });
+
+    dispatch_source_set_timer(self.checkTimer, DISPATCH_TIME_NOW, NSEC_PER_SEC * self.checkTimerInterval, 0);
+
+    dispatch_resume(self.checkTimer);
 }
 
 - (void)stopCheckTimer
 {
-    [self.checkTimer invalidate];
-    self.checkTimer = nil;
+    if (self.checkTimer) {
+        dispatch_source_cancel(self.checkTimer);
+    }
 }
 
 - (void)tick
@@ -184,7 +207,7 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
 
 - (BOOL)isRunning
 {
-    return self.checkTimer && [self.checkTimer isValid];
+    return self.checkTimer ? YES : NO;
 }
 
 - (BOOL)saveTasks
