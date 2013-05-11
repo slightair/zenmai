@@ -33,20 +33,50 @@ enum Sections {
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    
-    self.taskManager = [ZMTaskManager sharedManager];
-    self.completeTasks = [NSMutableArray array];
-    
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+
+    if (![taskManager restoreTasks] || taskManager.numberOfTasks == 0) {
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:10] userInfo:@{@"name" : @"hoge"}]];
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:20] userInfo:@{@"name" : @"fuga"}]];
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:30] userInfo:@{@"name" : @"piyo"}]];
+        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:40] userInfo:@{@"name" : @"moge"}]];
+    }
+
+    NSNotificationCenter *notificationCenter = taskManager.notificationCenter;
     [notificationCenter addObserverForName:ZMTaskManagerTaskFireNotification
                                     object:nil
                                      queue:[NSOperationQueue mainQueue]
                                 usingBlock:^(NSNotification *notification){
                                     ZMTask *task = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
+                                    ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 + arc4random() % 5 sinceDate:task.date]
+                                                                          userInfo:@{@"name" : task.userInfo[@"name"]}];
+                                    [taskManager addTask:newTask];
                                     [self.completeTasks addObject:task];
+                                }];
+
+    [notificationCenter addObserverForName:ZMTaskManagerTickNotification
+                                    object:nil
+                                     queue:[NSOperationQueue mainQueue]
+                                usingBlock:^(NSNotification *notification){
+                                    NSNumber *numberOfFiredTasks = notification.userInfo[ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey];
+                                    NSLog(@"tick %@", numberOfFiredTasks);
+
+                                    if ([numberOfFiredTasks integerValue] > 0) {
+                                        [self.tableView reloadData];
+                                    }
+                                }];
+
+    [notificationCenter addObserverForName:ZMTaskManagerResumedNotification
+                                    object:nil
+                                     queue:[NSOperationQueue mainQueue]
+                                usingBlock:^(NSNotification *notification){
                                     [self.tableView reloadData];
                                 }];
-    
+
+    self.taskManager = taskManager;
+    self.completeTasks = [NSMutableArray array];
+
     [self.taskManager startCheckTimer];
 }
 

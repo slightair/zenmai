@@ -14,26 +14,6 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
-    
-    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
-    
-    [[NSNotificationCenter defaultCenter] addObserverForName:ZMTaskManagerTaskFireNotification
-                                                      object:nil
-                                                       queue:[NSOperationQueue mainQueue]
-                                                  usingBlock:^(NSNotification *notification){
-                                                      ZMTask *task = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
-                                                      ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 sinceDate:task.date]
-                                                                                            userInfo:@{@"name" : task.userInfo[@"name"]}];
-                                                      [taskManager addTask:newTask];
-                                                  }];
-    
-    if (![taskManager restoreTasks] || taskManager.numberOfTasks == 0) {
-        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:10] userInfo:@{@"name" : @"hoge"}]];
-        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:20] userInfo:@{@"name" : @"fuga"}]];
-        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:30] userInfo:@{@"name" : @"piyo"}]];
-        [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:40] userInfo:@{@"name" : @"moge"}]];
-    }
-    
     return YES;
 }
 							
@@ -41,6 +21,9 @@
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    [taskManager stopCheckTimer];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
@@ -52,6 +35,9 @@
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+
+    ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    [taskManager startCheckTimer];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
