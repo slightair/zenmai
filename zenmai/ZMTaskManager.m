@@ -10,6 +10,7 @@
 // notifications
 NSString *const ZMTaskManagerTaskFireNotification = @"ZMTaskManagerTaskFireNotification";
 NSString *const ZMTaskManagerRestoreTasksNotification = @"ZMTaskManagerRestoreTasksNotification";
+NSString *const ZMTaskManagerResumedNotification = @"ZMTaskManagerResumedNotification";
 NSString *const ZMTaskManagerTickNotification = @"ZMTaskManagerTickNotification";
 
 // UserInfoKey
@@ -118,6 +119,7 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     
     self.isTickProcessRunning = NO;
     [self tick];
+    [self.notificationCenter postNotificationName:ZMTaskManagerResumedNotification object:self];
     
     self.checkTimer = [NSTimer scheduledTimerWithTimeInterval:ZMTaskManagerCheckTimerInterval
                                                        target:self
