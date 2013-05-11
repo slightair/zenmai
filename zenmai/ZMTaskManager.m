@@ -182,6 +182,11 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     return NO;
 }
 
+- (BOOL)isRunning
+{
+    return self.checkTimer && [self.checkTimer isValid];
+}
+
 - (BOOL)saveTasks
 {
     NSFileManager *fileManager = [NSFileManager defaultManager];
