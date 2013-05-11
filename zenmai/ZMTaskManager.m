@@ -136,15 +136,6 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
         [self tick];
     });
 
-    dispatch_source_set_cancel_handler(self.checkTimer, ^{
-
-#if !OS_OBJECT_USE_OBJC
-        dispatch_release(self.checkTimer);
-#endif
-
-        self.checkTimer = nil;
-    });
-
     dispatch_source_set_timer(self.checkTimer, DISPATCH_TIME_NOW, NSEC_PER_SEC * self.checkTimerInterval, 0);
 
     dispatch_resume(self.checkTimer);
@@ -154,6 +145,12 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
 {
     if (self.checkTimer) {
         dispatch_source_cancel(self.checkTimer);
+
+#if !OS_OBJECT_USE_OBJC
+        dispatch_release(self.checkTimer);
+#endif
+
+        self.checkTimer = nil;
     }
 }
 
