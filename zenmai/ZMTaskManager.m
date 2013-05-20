@@ -7,16 +7,6 @@
 
 #import "ZMTaskManager.h"
 
-// notifications
-NSString *const ZMTaskManagerTaskFireNotification = @"ZMTaskManagerTaskFireNotification";
-NSString *const ZMTaskManagerRestoreTasksNotification = @"ZMTaskManagerRestoreTasksNotification";
-NSString *const ZMTaskManagerResumedNotification = @"ZMTaskManagerResumedNotification";
-NSString *const ZMTaskManagerTickNotification = @"ZMTaskManagerTickNotification";
-
-// UserInfoKey
-NSString *const ZMTaskManagerNotificationTaskUserInfoKey = @"ZMTaskManagerNotificationTaskUserInfoKey";
-NSString *const ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey = @"ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey";
-
 // Constants
 NSString *const ZMTaskManagerTaskListSaveFileDirectory = @"zenmai";
 NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
@@ -59,7 +49,6 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     if (self) {
         self.tasks = [NSMutableSet set];
         self.isTickProcessRunning = NO;
-        self.notificationCenter = [NSNotificationCenter defaultCenter];
         self.taskListSaveFilePath = [[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
                                       stringByAppendingPathComponent:ZMTaskManagerTaskListSaveFileDirectory]
                                       stringByAppendingPathComponent:ZMTaskManagerTaskListSaveFileName];
@@ -128,7 +117,10 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
 
     self.isTickProcessRunning = NO;
     [self tick];
-    [self.notificationCenter postNotificationName:ZMTaskManagerResumedNotification object:self];
+
+    if ([self.delegate respondsToSelector:@selector(taskManagerDidResume:)]) {
+        [self.delegate taskManagerDidResume:self];
+    }
 
     dispatch_queue_t queue = dispatch_queue_create("timerQueue", 0);
     self.checkTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
@@ -168,9 +160,9 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
         NSAssert(result, @"could not save task list (%@).", self.taskListSaveFilePath);
     }
 
-    [self.notificationCenter postNotificationName:ZMTaskManagerTickNotification
-                                           object:self
-                                         userInfo:@{ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey: @(numberOfFiredTasks)}];
+    if ([self.delegate respondsToSelector:@selector(taskManager:didTick:)]) {
+        [self.delegate taskManager:self didTick:numberOfFiredTasks];
+    }
 
     self.isTickProcessRunning = NO;
 }
@@ -184,9 +176,10 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
         ZMTask *task = [[self sortedTasks:tasks] objectAtIndex:0];
         
         [self.tasks removeObject:task];
-        [self.notificationCenter postNotificationName:ZMTaskManagerTaskFireNotification
-                                               object:self
-                                             userInfo:@{ZMTaskManagerNotificationTaskUserInfoKey : task}];
+        if ([self.delegate respondsToSelector:@selector(taskManager:didFireTask:)]) {
+            [self.delegate taskManager:self didFireTask:task];
+        }
+
         firedTasks++;
     }
     
@@ -198,8 +191,11 @@ NSString *const ZMTaskManagerTaskListSaveFileName = @"zmtasks.dat";
     NSSet *savedTasks = [NSKeyedUnarchiver unarchiveObjectWithFile:self.taskListSaveFilePath];
     if (savedTasks) {
         self.tasks = [NSMutableSet setWithSet:savedTasks];
-        [self.notificationCenter postNotificationName:ZMTaskManagerRestoreTasksNotification
-                                               object:self];
+
+        if ([self.delegate respondsToSelector:@selector(taskManagerDidRestoreTasks:)]) {
+            [self.delegate taskManagerDidRestoreTasks:self];
+        }
+
         return YES;
     }
     

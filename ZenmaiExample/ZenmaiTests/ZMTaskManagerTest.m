@@ -114,29 +114,22 @@
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:25 sinceDate:now] userInfo:@{@"taskName" : @"moge"}]];
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-5 sinceDate:now] userInfo:@{@"taskName" : @"moga"}]];
     GHAssertEquals(5U, [taskManager numberOfTasks], @"taskManager should have 5 tasks.");
-    
-    id observer = [taskManager.notificationCenter addObserverForName:ZMTaskManagerTaskFireNotification
-                                                              object:nil
-                                                               queue:[NSOperationQueue mainQueue]
-                                                          usingBlock:^(NSNotification *notification){
-                                                              ZMTask *firedTask = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
-                                                              if ([firedTask.userInfo[@"taskName"] isEqualToString:@"hoge"]) {
-                                                                  [self notify:kGHUnitWaitStatusSuccess];
-                                                              }
-                                                          }];
-    
-    [self prepare];
-    
+
+    id delegate = [OCMockObject mockForProtocol:@protocol(ZMTaskManagerDelegate)];
+    [[delegate expect] taskManager:taskManager didFireTask:OCMOCK_ANY];
+    [[delegate expect] taskManagerDidResume:taskManager];
+    [[delegate expect] taskManager:taskManager didTick:1];
+    taskManager.delegate = delegate;
+
     [taskManager startCheckTimer];
     GHAssertEquals(4U, [taskManager numberOfTasks], @"taskManager should run first tick when start check timer.");
     
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-10 sinceDate:now] userInfo:@{@"taskName" : @"poyo"}]];
     GHAssertEquals(4U, [taskManager numberOfTasks], @"taskManager could not add past task when check timer is running.");
-    
-    [self waitForStatus:kGHUnitWaitStatusSuccess timeout:2.0];
-    
+
     [taskManager stopCheckTimer];
-    [taskManager.notificationCenter removeObserver:observer];
+
+    [delegate verify];
 }
 
 - (void)testSaveTasks
@@ -177,14 +170,17 @@
     [fileManager removeItemAtPath:kTestTaskListSaveFilePath error:NULL];
     GHAssertFalse([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is exists.");
 
-    id observerMock = [OCMockObject observerMock];
-    [[observerMock expect] notificationWithName:ZMTaskManagerTickNotification object:OCMOCK_ANY userInfo:@{ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey:@1}];
-    [taskManager.notificationCenter addMockObserver:observerMock name:ZMTaskManagerTickNotification object:nil];
+    id delegate = [OCMockObject mockForProtocol:@protocol(ZMTaskManagerDelegate)];
+    [[delegate expect] taskManager:taskManager didTick:1];
+    [[delegate expect] taskManager:taskManager didFireTask:OCMOCK_ANY];
+
+    taskManager.delegate = delegate;
 
     [taskManager tick];
 
-    [taskManager.notificationCenter removeObserver:observerMock];
-    [observerMock verify];
+    [delegate verify];
+
+    taskManager.delegate = nil;
 
     GHAssertEquals(2U, [taskManager numberOfTasks], @"taskManager should have 2 tasks.");
     GHAssertTrue([fileManager fileExistsAtPath:kTestTaskListSaveFilePath], @"task list save file is not exists.");
@@ -213,23 +209,20 @@
     GHAssertEquals(0U, [taskManager fireTasks:now], @"taskManager should not fire task.");
     
     [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-10 sinceDate:now] userInfo:@{@"taskName" : @"test"}]];
-    
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    id observer = [notificationCenter addObserverForName:ZMTaskManagerTaskFireNotification
-                                                  object:nil
-                                                   queue:[NSOperationQueue mainQueue]
-                                              usingBlock:^(NSNotification *notification){
-                                                  ZMTask *firedTask = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
-                                                  if ([firedTask.userInfo[@"taskName"] isEqualToString:@"test"]) {
-                                                      ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:-5 sinceDate:now] userInfo:nil];
-                                                      [taskManager addTask:newTask];
-                                                  }
-                                              }];
-    
+
+    [self prepare];
+
+    id delegate = [OCMockObject mockForProtocol:@protocol(ZMTaskManagerDelegate)];
+    [[[delegate stub] andDo:^(NSInvocation *invocation){
+        [self notify:kGHUnitWaitStatusSuccess];
+    }] taskManager:taskManager didFireTask:OCMOCK_ANY];
+    taskManager.delegate = delegate;
+
     NSUInteger numberOfFiredTasks = [taskManager fireTasks:now];
-    [notificationCenter removeObserver:observer];
-    
-    GHAssertEquals(2U, numberOfFiredTasks, @"taskManager should fire 2 task.");
+
+    [self waitForStatus:kGHUnitWaitStatusSuccess timeout:1.0];
+
+    GHAssertEquals(1U, numberOfFiredTasks, @"taskManager should fire 1 task.");
 }
 
 - (void)testRestoreTasks
@@ -247,18 +240,15 @@
                          [[ZMTask alloc] initWithDate:[NSDate date] userInfo:nil],
                          nil];
     [NSKeyedArchiver archiveRootObject:dummyTasks toFile:kTestTaskListSaveFilePath];
-    
-    
-    id mockObserver = [OCMockObject observerMock];
-    [[mockObserver expect] notificationWithName:ZMTaskManagerRestoreTasksNotification object:OCMOCK_ANY];
-    [taskManager.notificationCenter addMockObserver:mockObserver
-                                               name:ZMTaskManagerRestoreTasksNotification
-                                             object:nil];
-    
+
+    id delegate = [OCMockObject mockForProtocol:@protocol(ZMTaskManagerDelegate)];
+    [[delegate expect] taskManagerDidRestoreTasks:taskManager];
+    taskManager.delegate = delegate;
+
     result = [taskManager restoreTasks];
     
-    [mockObserver verify];
-    [taskManager.notificationCenter removeObserver:mockObserver];
+    [delegate verify];
+
     GHAssertTrue(result, @"taskManager should return YES if succeeded restore tasks.");
     GHAssertEquals(3U, [taskManager numberOfTasks], @"taskManager should have 3 tasks.");
 }

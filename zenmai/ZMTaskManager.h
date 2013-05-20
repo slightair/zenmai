@@ -10,15 +10,16 @@
 
 #define ZMTaskManagerCheckTimerInterval 1.0
 
-// notifications
-extern NSString *const ZMTaskManagerTaskFireNotification;
-extern NSString *const ZMTaskManagerRestoreTasksNotification;
-extern NSString *const ZMTaskManagerResumedNotification;
-extern NSString *const ZMTaskManagerTickNotification;
+@class ZMTaskManager;
 
-// UserInfoKey
-extern NSString *const ZMTaskManagerNotificationTaskUserInfoKey;
-extern NSString *const ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey;
+@protocol ZMTaskManagerDelegate <NSObject>
+
+- (void)taskManagerDidRestoreTasks:(ZMTaskManager *)taskManager;
+- (void)taskManagerDidResume:(ZMTaskManager *)taskManager;
+- (void)taskManager:(ZMTaskManager *)taskManager didFireTask:(ZMTask *)task;
+- (void)taskManager:(ZMTaskManager *)taskManager didTick:(NSUInteger)numberOfFiredTasks;
+
+@end
 
 @interface ZMTaskManager : NSObject
 
@@ -34,6 +35,6 @@ extern NSString *const ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey;
 - (BOOL)restoreTasks;
 - (BOOL)isRunning;
 
-@property(nonatomic, strong) NSNotificationCenter *notificationCenter;
+@property(nonatomic, weak) id <ZMTaskManagerDelegate> delegate;
 
 @end
