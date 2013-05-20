@@ -7,7 +7,6 @@
 //
 
 #import "ZMTaskListViewController.h"
-#import "ZMTaskManager.h"
 
 enum Sections {
     TaskListViewSectionWaitTasks = 0,
@@ -35,6 +34,7 @@ enum Sections {
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 
     ZMTaskManager *taskManager = [ZMTaskManager sharedManager];
+    taskManager.delegate = self;
 
     if (![taskManager restoreTasks] || taskManager.numberOfTasks == 0) {
         [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:10] userInfo:@{@"name" : @"hoge"}]];
@@ -42,37 +42,6 @@ enum Sections {
         [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:30] userInfo:@{@"name" : @"piyo"}]];
         [taskManager addTask:[[ZMTask alloc] initWithDate:[NSDate dateWithTimeIntervalSinceNow:40] userInfo:@{@"name" : @"moge"}]];
     }
-
-    NSNotificationCenter *notificationCenter = taskManager.notificationCenter;
-    [notificationCenter addObserverForName:ZMTaskManagerTaskFireNotification
-                                    object:nil
-                                     queue:[NSOperationQueue mainQueue]
-                                usingBlock:^(NSNotification *notification){
-                                    ZMTask *task = notification.userInfo[ZMTaskManagerNotificationTaskUserInfoKey];
-                                    ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 + arc4random() % 5 sinceDate:task.date]
-                                                                          userInfo:@{@"name" : task.userInfo[@"name"]}];
-                                    [taskManager addTask:newTask];
-                                    [self.completeTasks addObject:task];
-                                }];
-
-    [notificationCenter addObserverForName:ZMTaskManagerTickNotification
-                                    object:nil
-                                     queue:[NSOperationQueue mainQueue]
-                                usingBlock:^(NSNotification *notification){
-                                    NSNumber *numberOfFiredTasks = notification.userInfo[ZMTaskManagerNotificationNumberOfFiredTasksUserInfoKey];
-                                    NSLog(@"tick %@", numberOfFiredTasks);
-
-                                    if ([numberOfFiredTasks integerValue] > 0) {
-                                        [self.tableView reloadData];
-                                    }
-                                }];
-
-    [notificationCenter addObserverForName:ZMTaskManagerResumedNotification
-                                    object:nil
-                                     queue:[NSOperationQueue mainQueue]
-                                usingBlock:^(NSNotification *notification){
-                                    [self.tableView reloadData];
-                                }];
 
     self.taskManager = taskManager;
     self.completeTasks = [NSMutableArray array];
@@ -84,6 +53,30 @@ enum Sections {
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - ZMTaskManager delegate
+
+- (void)taskManager:(ZMTaskManager *)taskManager didFireTask:(ZMTask *)task
+{
+    ZMTask *newTask = [[ZMTask alloc] initWithDate:[NSDate dateWithTimeInterval:10 + arc4random() % 5 sinceDate:task.date]
+                                          userInfo:@{@"name" : task.userInfo[@"name"]}];
+    [taskManager addTask:newTask];
+    [self.completeTasks addObject:task];
+}
+
+- (void)taskManager:(ZMTaskManager *)taskManager didTick:(NSUInteger)numberOfFiredTasks
+{
+    NSLog(@"tick %d", numberOfFiredTasks);
+
+    if (numberOfFiredTasks > 0) {
+        [self.tableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
+    }
+}
+
+- (void)taskManagerDidResume:(ZMTaskManager *)taskManager
+{
+    [self.tableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
 }
 
 #pragma mark - Table view data source

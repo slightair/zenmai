@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ZMTaskManager.h"
 
-@interface ZMTaskListViewController : UITableViewController
+@interface ZMTaskListViewController : UITableViewController <ZMTaskManagerDelegate>
 
 @end

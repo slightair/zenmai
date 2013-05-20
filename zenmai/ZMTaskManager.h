@@ -14,6 +14,7 @@
 
 @protocol ZMTaskManagerDelegate <NSObject>
 
+@optional
 - (void)taskManagerDidRestoreTasks:(ZMTaskManager *)taskManager;
 - (void)taskManagerDidResume:(ZMTaskManager *)taskManager;
 - (void)taskManager:(ZMTaskManager *)taskManager didFireTask:(ZMTask *)task;
